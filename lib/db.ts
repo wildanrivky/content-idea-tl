@@ -1,84 +1,73 @@
-// LOCAL USER DATABASE — will be replaced with Supabase after deploy
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// ─── Types ───────────────────────────────────────────────
 export type User = {
   id: number;
   name: string;
   email: string;
   password: string;
-  role: "Tour Leader" | "Admin";
-  status: "Aktif" | "Tidak Aktif";
+  role: string;
+  status: string;
   last_login: string | null;
 };
 
-let users: User[] = [
-  {
-    id: 1,
-    name: "Wildan Rivky",
-    email: "admin",
-    password: "admin123",
-    role: "Admin",
-    status: "Aktif",
-    last_login: "2026-04-12T08:00:00Z",
-  },
-  {
-    id: 2,
-    name: "Budi Santoso",
-    email: "budi@tourleader.id",
-    password: "budi123",
-    role: "Tour Leader",
-    status: "Aktif",
-    last_login: "2026-04-10T14:15:00Z",
-  },
-  {
-    id: 3,
-    name: "Siti Rahma",
-    email: "siti@tourleader.id",
-    password: "siti123",
-    role: "Tour Leader",
-    status: "Aktif",
-    last_login: "2026-04-09T08:45:00Z",
-  },
-  {
-    id: 4,
-    name: "Alex Wijaya",
-    email: "alex@tourleader.id",
-    password: "alex123",
-    role: "Tour Leader",
-    status: "Tidak Aktif",
-    last_login: "2026-03-20T11:20:00Z",
-  },
-];
+// ─── Auth ────────────────────────────────────────────────
+export async function getUserByIdentifier(identifier: string): Promise<User | null> {
+  // Support login by email OR by username ("admin")
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .or(`email.eq.${identifier},name.eq.${identifier}`)
+    .single();
 
-export function getAllUsers(): User[] {
-  return users;
+  if (error || !data) return null;
+  return data as User;
 }
 
-export function findUserByEmailAndPassword(email: string, password: string): User | null {
-  const lower = email.trim().toLowerCase();
-  return (
-    users.find(
-      (u) =>
-        (u.email.toLowerCase() === lower || u.email === email) &&
-        u.password === password
-    ) || null
-  );
+export async function updateLastLogin(id: number) {
+  await supabase
+    .from("users")
+    .update({ last_login: new Date().toISOString() })
+    .eq("id", id);
 }
 
-export function addUser(user: Omit<User, "id">): User {
-  const newUser = { ...user, id: Date.now() };
-  users.push(newUser);
-  return newUser;
+// ─── User Management (Admin) ─────────────────────────────
+export async function getAllUsers(): Promise<User[]> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .order("id");
+  if (error) return [];
+  return data as User[];
 }
 
-export function updateUserStatus(id: number, status: "Aktif" | "Tidak Aktif") {
-  users = users.map((u) => (u.id === id ? { ...u, status } : u));
+export async function addUser(user: Omit<User, "id" | "last_login">) {
+  const { data, error } = await supabase
+    .from("users")
+    .insert([{ ...user, last_login: null }])
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 }
 
-export function updateUserLastLogin(id: number) {
-  users = users.map((u) =>
-    u.id === id ? { ...u, last_login: new Date().toISOString() } : u
-  );
+export async function updateUserStatus(id: number, status: string) {
+  const { error } = await supabase
+    .from("users")
+    .update({ status })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
-export function deleteUser(id: number) {
-  users = users.filter((u) => u.id !== id);
+export async function deleteUser(id: number) {
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", id);
+  if (error) throw new Error(error.message);
 }
