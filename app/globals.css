@@ -1,0 +1,236 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-navy: #0A192F;
+  --color-navy-light: #112240;
+  --color-navy-lighter: #1D3461;
+  --color-navy-dark: #060F1D;
+  --color-gold: #C5A059;
+  --color-gold-light: #D4B576;
+  --color-gold-dark: #A6863E;
+  --color-gold-muted: rgba(197,160,89,0.12);
+  --color-beige: #F5F2ED;
+  --color-beige-dark: #E8E2D8;
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+}
+
+:root {
+  --navy: #0A192F;
+  --navy-light: #112240;
+  --navy-lighter: #1D3461;
+  --navy-dark: #060F1D;
+  --gold: #C5A059;
+  --gold-light: #D4B576;
+  --gold-dark: #A6863E;
+  --gold-muted: rgba(197,160,89,0.12);
+  --beige: #F5F2ED;
+  --sidebar-w: 240px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--navy);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  margin: 0;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(197,160,89,0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(197,160,89,0.45); }
+
+/* ===== GOLD TEXT ===== */
+.gold-text {
+  background: linear-gradient(135deg, #D4B576 0%, #C5A059 45%, #A6863E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== MAP GRID BG ===== */
+.map-grid {
+  background-image:
+    linear-gradient(rgba(197,160,89,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(197,160,89,0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ===== ANIMATED ORBS BG ===== */
+.bg-scene {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 15% 8%, rgba(30,58,138,0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 85%, rgba(197,160,89,0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #060F1D 0%, #0A192F 50%, #060F1D 100%);
+}
+.orb {
+  position: fixed; border-radius: 50%; filter: blur(90px);
+  opacity: .3; pointer-events: none; z-index: 0;
+  animation: orbDrift 22s ease-in-out infinite;
+}
+.orb-a { width: 360px; height: 360px; background: rgba(30,58,138,0.55); top: -100px; right: -80px; }
+.orb-b { width: 220px; height: 220px; background: rgba(197,160,89,0.15); bottom: 5%; left: -80px; animation-delay: -8s; }
+.orb-c { width: 280px; height: 280px; background: rgba(37,99,235,0.22); top: 55%; right: -100px; animation-delay: -15s; }
+@keyframes orbDrift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(28px,-20px) scale(1.06); }
+  66%      { transform: translate(-20px,16px) scale(.94); }
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes floatA  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-18px) rotate(2deg)} }
+@keyframes floatB  { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-14px) rotate(-3deg)} }
+@keyframes spinSlow  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+@keyframes pulseGold { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
+@keyframes fadeInUp  { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn    { from{opacity:0} to{opacity:1} }
+@keyframes modalIn   { from{opacity:0;transform:scale(0.93)} to{opacity:1;transform:scale(1)} }
+@keyframes shimmer   { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes dotFloat  { 0%,100%{transform:translateY(0) scale(1);opacity:.25} 50%{transform:translateY(-28px) scale(1.3);opacity:.5} }
+
+.float-a       { animation: floatA 7s ease-in-out infinite; }
+.float-b       { animation: floatB 9s ease-in-out infinite 1s; }
+.spin-slow     { animation: spinSlow 36s linear infinite; }
+.compass-spin  { animation: spinSlow 28s linear infinite; }
+.pulse-gold    { animation: pulseGold 3s ease-in-out infinite; }
+.fade-in-up    { animation: fadeInUp 0.65s ease forwards; }
+.fade-in-up-d1 { animation: fadeInUp 0.65s ease 0.12s forwards; opacity:0; }
+.fade-in-up-d2 { animation: fadeInUp 0.65s ease 0.25s forwards; opacity:0; }
+.fade-in-up-d3 { animation: fadeInUp 0.65s ease 0.38s forwards; opacity:0; }
+.modal-enter   { animation: modalIn 0.28s ease forwards; }
+.dot-float     { animation: dotFloat 18s ease-in-out infinite; }
+
+/* ===== SHIMMER LOADING ===== */
+.shimmer-bg {
+  background: linear-gradient(90deg, transparent 0%, rgba(197,160,89,0.08) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite;
+}
+
+/* ===== INPUT GOLD ===== */
+.input-gold { transition: border-color 0.2s, box-shadow 0.2s; }
+.input-gold:focus {
+  outline: none;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(197,160,89,0.18);
+}
+
+/* ===== CARD LIFT ===== */
+.card-lift { transition: transform 0.28s ease, box-shadow 0.28s ease; }
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 44px rgba(197,160,89,0.13);
+}
+
+/* ===== CHIP ===== */
+.chip { transition: all 0.18s ease; cursor: pointer; user-select: none; }
+.chip:hover { background: rgba(197,160,89,0.12); border-color: rgba(197,160,89,0.4); }
+.chip.active {
+  background: rgba(197,160,89,0.18);
+  border-color: var(--gold);
+  color: var(--gold-light);
+}
+
+/* ===== PRIMARY BUTTON ===== */
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+  color: var(--navy-dark);
+  font-weight: 800;
+  transition: all 0.25s ease;
+  position: relative; overflow: hidden;
+  letter-spacing: 0.01em;
+}
+.btn-primary::before {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 55%);
+  opacity:0; transition: opacity 0.25s;
+}
+.btn-primary:hover:not(:disabled)::before { opacity:1; }
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 26px rgba(197,160,89,0.38);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ===== ACCENT LINE ===== */
+.accent-line {
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--gold) 70%, transparent 100%);
+  opacity:.3; border-radius:1px;
+}
+
+/* ===== GLASS CARD ===== */
+.glass {
+  background: rgba(17,34,64,0.7);
+  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(197,160,89,0.12);
+  border-radius: 1rem;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  background: rgba(6,15,29,0.95);
+  border-right: 1px solid rgba(197,160,89,0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.sidebar-nav-item:hover {
+  color: rgba(255,255,255,0.85);
+  background: rgba(197,160,89,0.07);
+  border-color: rgba(197,160,89,0.1);
+}
+.sidebar-nav-item.active {
+  color: var(--gold-light);
+  background: rgba(197,160,89,0.13);
+  border-color: rgba(197,160,89,0.25);
+}
+.sidebar-nav-item.active .nav-icon { color: var(--gold); }
+.nav-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+
+/* ===== SIDEBAR SLIDE ===== */
+.sidebar-slide { transition: transform 0.32s cubic-bezier(0.4,0,0.2,1); }
+
+/* ===== STATS CARD ===== */
+.stat-card {
+  background: rgba(17,34,64,0.6);
+  border: 1px solid rgba(197,160,89,0.12);
+  border-radius: 14px;
+  padding: 20px;
+  transition: all 0.25s ease;
+}
+.stat-card:hover {
+  border-color: rgba(197,160,89,0.28);
+  background: rgba(17,34,64,0.8);
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .float-a,.float-b,.spin-slow,.compass-spin,.pulse-gold,.shimmer-bg,.orb,.dot-float { animation: none !important; }
+  .fade-in-up,.fade-in-up-d1,.fade-in-up-d2,.fade-in-up-d3 { animation: none !important; opacity:1 !important; }
+  .modal-enter { animation: none !important; }
+  .card-lift:hover { transform: none; }
+}
