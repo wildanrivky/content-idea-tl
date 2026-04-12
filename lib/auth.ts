@@ -1,7 +1,7 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 
-const secretKey = "c0nt3nt1d3a53cr3tPr0d";
+const secretKey = "0n3app70url34d3r53cr3t2026";
 const key = new TextEncoder().encode(secretKey);
 
 export async function encrypt(payload: any) {
@@ -24,7 +24,7 @@ export async function setSession(user: any) {
   const session = await encrypt({ user, expires });
   const cookieStore = await cookies();
 
-  cookieStore.set("auth_session", session, {
+  cookieStore.set("oatl_session", session, {
     expires,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -35,12 +35,12 @@ export async function setSession(user: any) {
 
 export async function clearSession() {
   const cookieStore = await cookies();
-  cookieStore.set("auth_session", "", { expires: new Date(0) });
+  cookieStore.set("oatl_session", "", { expires: new Date(0) });
 }
 
 export async function getSession() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("auth_session")?.value;
+  const sessionCookie = cookieStore.get("oatl_session")?.value;
   if (!sessionCookie) return null;
   try {
     return await decrypt(sessionCookie);

@@ -1,44 +1,52 @@
 "use server";
 
-import { supabase } from "@/lib/supabaseClient";
-import { setSession, clearSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { setSession, clearSession } from "@/lib/auth";
+import { getUserByIdentifier, updateLastLogin } from "@/lib/db";
 
-export async function loginAction(prevState: any, formData: FormData) {
-  const email = formData.get("email") as string;
+export type AuthState = {
+  error?: string;
+} | null;
+
+export async function loginAction(
+  prevState: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  const identifier = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
 
-  if (!email || !password) {
-    return { error: "Semua fied harus diisi." };
+  if (!identifier || !password) {
+    return { error: "Email/username dan password wajib diisi." };
   }
 
-  const { data: users, error } = await supabase
-    .from("users")
-    .select("*")
-    .ilike("email", email.trim())
-    .eq("password", password);
+  // Cari user di Supabase
+  const user = await getUserByIdentifier(identifier);
 
-  if (error || !users || users.length === 0) {
-    return { error: "Email atau Password salah. Anda belum terdaftar." };
+  if (!user) {
+    return { error: "Akun tidak ditemukan." };
   }
 
-  const matchedUser = users[0];
-
-  if (matchedUser.status !== "Aktif") {
-    return { error: "Akun Anda sedang dinonaktifkan oleh Admin." };
+  if (user.password !== password) {
+    return { error: "Password salah." };
   }
 
-  await supabase.from("users").update({ last_login: new Date().toISOString() }).eq("id", matchedUser.id);
+  if (user.status !== "Aktif") {
+    return { error: "Akun Anda tidak aktif. Hubungi admin." };
+  }
 
-  // Set the HTTP-only cookie using the jose JWT utility
+  // Update last login
+  await updateLastLogin(user.id);
+
+  // Set JWT session
   await setSession({
-    id: matchedUser.id,
-    name: matchedUser.name,
-    email: matchedUser.email,
-    role: matchedUser.role
+    id: String(user.id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
   });
 
-  if (matchedUser.role === "Admin") {
+  // Redirect berdasarkan role
+  if (user.role === "Admin") {
     redirect("/admin");
   } else {
     redirect("/dashboard");
