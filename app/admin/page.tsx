@@ -1,13 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createClient } from "@supabase/supabase-js";
 import { logoutAction } from "@/app/actions/auth";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { getUsersAction, addUserAction, toggleUserStatusAction, deleteUserAction } from "@/app/actions/admin";
 
 type User = {
   id: number;
@@ -45,8 +40,12 @@ export default function AdminPage() {
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("users").select("*").order("id");
-    if (!error && data) setUsers(data as User[]);
+    const res = await getUsersAction();
+    if (res.success && res.data) {
+      setUsers(res.data as User[]);
+    } else {
+      showToast(res.error || "Gagal mengambil data", "error");
+    }
     setLoading(false);
   }, []);
 
@@ -67,16 +66,28 @@ export default function AdminPage() {
 
   const handleToggleStatus = async (user: User) => {
     const newStatus = user.status === "Aktif" ? "Tidak Aktif" : "Aktif";
-    const { error } = await supabase.from("users").update({ status: newStatus }).eq("id", user.id);
-    if (error) { showToast("Gagal mengubah status", "error"); return; }
+    
+    // Optimistic UI update
+    setUsers((prev) => prev.map((u) => u.id === user.id ? { ...u, status: newStatus } : u));
+    
+    const res = await toggleUserStatusAction(user.id, newStatus);
+    if (!res.success) {
+      showToast(res.error || "Gagal mengubah status", "error"); 
+      // Revert if failed
+      fetchUsers();
+      return; 
+    }
     showToast(`${user.name} — status diubah ke ${newStatus}`, "success");
-    fetchUsers();
   };
 
   const handleDelete = async (user: User) => {
     if (!confirm(`Hapus akun "${user.name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
-    const { error } = await supabase.from("users").delete().eq("id", user.id);
-    if (error) { showToast("Gagal menghapus user", "error"); return; }
+    
+    const res = await deleteUserAction(user.id);
+    if (!res.success) { 
+      showToast(res.error || "Gagal menghapus user", "error"); 
+      return; 
+    }
     showToast(`Akun "${user.name}" berhasil dihapus`, "info");
     fetchUsers();
   };
@@ -87,16 +98,22 @@ export default function AdminPage() {
       showToast("Semua field wajib diisi", "error"); return;
     }
     setSaving(true);
-    const { error } = await supabase.from("users").insert([{
+    
+    const res = await addUserAction({
       name: form.name.trim(),
       email: form.email.trim().toLowerCase(),
       password: form.password,
       role: form.role,
       status: "Aktif",
-      last_login: null,
-    }]);
+    });
+
     setSaving(false);
-    if (error) { showToast(`Gagal: ${error.message}`, "error"); return; }
+    
+    if (!res.success) { 
+      showToast(`Gagal: ${res.error}`, "error"); 
+      return; 
+    }
+    
     showToast(`Akun "${form.name}" berhasil ditambahkan!`, "success");
     setForm(EMPTY_FORM);
     setShowModal(false);
@@ -142,7 +159,7 @@ export default function AdminPage() {
             Kelola akses Tour Leader yang terdaftar di One App Tour Leader
             <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-semibold"
               style={{ background: "rgba(34,197,94,0.1)", color: "#4ade80", border: "1px solid rgba(34,197,94,0.2)" }}>
-              ● Supabase Live
+              ● Google Sheets Live
             </span>
           </p>
         </div>
@@ -195,7 +212,7 @@ export default function AdminPage() {
           {loading ? (
             <div className="py-16 text-center text-white/30">
               <i className="fas fa-circle-notch fa-spin text-2xl" style={{ color: "var(--gold)" }} />
-              <p className="mt-3 text-[13px]">Memuat data dari Supabase…</p>
+              <p className="mt-3 text-[13px]">Memuat data dari Google Sheets…</p>
             </div>
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-white/30">
@@ -278,7 +295,7 @@ export default function AdminPage() {
             style={{ background: "var(--navy)", border: "1px solid rgba(197,160,89,0.2)" }}>
             <div className="px-6 py-5" style={{ borderBottom: "1px solid rgba(197,160,89,0.1)" }}>
               <h2 className="text-[16px] font-bold text-white">Tambah Pengguna Baru</h2>
-              <p className="text-[12px] text-white/35 mt-0.5">Data akan langsung tersimpan di Supabase</p>
+              <p className="text-[12px] text-white/35 mt-0.5">Data akan langsung tersimpan di Google Sheets</p>
             </div>
             <form onSubmit={handleAddUser} className="px-6 py-5 space-y-4">
               {[
