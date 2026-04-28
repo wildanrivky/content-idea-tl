@@ -1,6 +1,7 @@
 "use server";
 
-import { getAllUsers, addUser, updateUserStatus, deleteUser, User } from "@/lib/db";
+import { getAllUsers, addUser, updateUserStatus, deleteUser, updateUserPassword, User } from "@/lib/db";
+import { getSession } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 export async function getUsersAction() {
@@ -43,5 +44,36 @@ export async function deleteUserAction(id: number) {
   } catch (error: any) {
     console.error("Error deleting user:", error);
     return { success: false, error: error.message || "Gagal menghapus pengguna." };
+  }
+}
+
+export async function changePasswordAction(oldPassword: string, newPassword: string) {
+  try {
+    // Get current user from session
+    const session = await getSession();
+    if (!session?.user?.id) {
+      return { success: false, error: "Sesi tidak ditemukan. Silakan login ulang." };
+    }
+
+    // Get all users and find the current one
+    const users = await getAllUsers();
+    const currentUser = users.find((u) => String(u.id) === String(session.user.id));
+
+    if (!currentUser) {
+      return { success: false, error: "Akun tidak ditemukan." };
+    }
+
+    // Verify old password
+    if (currentUser.password !== oldPassword) {
+      return { success: false, error: "Password lama tidak sesuai." };
+    }
+
+    // Update password
+    await updateUserPassword(currentUser.id, newPassword);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error changing password:", error);
+    return { success: false, error: error.message || "Gagal mengganti password." };
   }
 }

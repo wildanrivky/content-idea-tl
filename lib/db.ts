@@ -131,3 +131,16 @@ export async function deleteUser(id: number) {
     throw new Error("User not found");
   }
 }
+
+export async function updateUserPassword(id: number, newPassword: string) {
+  const sheet = await getSheet();
+  const rows = await sheet.getRows();
+  
+  const row = rows.find((r) => parseInt(r.get("id")) === id);
+  if (row) {
+    row.assign({ password: newPassword });
+    await row.save();
+  } else {
+    throw new Error("User not found");
+  }
+}

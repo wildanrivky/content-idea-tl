@@ -54,16 +54,7 @@ export default function ScriptGuidingPage() {
   const [lastPrompt, setLastPrompt] = useState("");
   const [copied, setCopied] = useState(false);
   const [toasts, setToasts] = useState<{ id: number; msg: string; type: string }[]>([]);
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // NEW STATES FOR ADVANCED PROMPT
-  const [audience, setAudience] = useState("");
-  const [fact1, setFact1] = useState("");
-  const [fact2, setFact2] = useState("");
-  const [fact3, setFact3] = useState("");
-  const [meetingPoint, setMeetingPoint] = useState("");
-  const [meetingTime, setMeetingTime] = useState("");
 
   const showToast = (msg: string, type = "success") => {
     const id = Date.now();
@@ -83,7 +74,7 @@ export default function ScriptGuidingPage() {
     );
   };
 
-  const buildPrompt = (destination: string, tone: string, templateId: number | null, audience: string, fact1: string, fact2: string, fact3: string, meetingPoint: string, meetingTime: string) => {
+  const buildPrompt = (destination: string, tone: string, templateId: number | null) => {
     const toneDesc = toneMap[tone] || toneMap.santai;
     let templateFocus = "";
     if (templateId) {
@@ -91,45 +82,54 @@ export default function ScriptGuidingPage() {
       if (tpl) templateFocus = `\n\nFOCUS KHUSUS TEMPLATE (${tpl.name}): Fokuskan narasi pada ${tpl.focus}. Sesuaikan contoh, analogi, dan rekomendasi dengan tema ini.`;
     }
 
-    const pointFacts = [fact1, fact2, fact3].filter(f => f.trim()).map((f, i) => `Poin ${i+1}: ${f}`).join('\n');
-
-    return `[Role] Bertindaklah sebagai seorang Senior Tour Leader / Tour Guide yang sangat karismatik, ramah, dan memiliki pengetahuan mendalam serta pengalaman lebih dari 10 tahun di bidang pariwisata.
-[Task] Tugas Anda adalah membuat script guiding (teks panduan lisan) yang interaktif, menarik, dan informatif untuk menjelaskan destinasi wisata kepada rombongan turis saya. Gunakan gaya STORYTELLING (bercerita), bukan seperti membaca buku sejarah.
-[Audience] Rombongan turis: ${audience || "Umum/Wisatawan Indonesia"}. Sesuaikan gaya bahasa, lelucon, dan referensi agar relevan dengan mereka.
-[Context] Destinasi: ${destination}.${pointFacts ? `\nPoin utama yang wajib masuk ke dalam cerita:\n${pointFacts}` : ""}
+    return `Kamu adalah seorang Senior Tour Leader profesional berpengalaman lebih dari 10 tahun yang menguasai teknik narasi guiding wisata internasional. Saat ini kamu akan memandu rombongan wisatawan Indonesia ke ${destination}.
 
 TONE OF VOICE:
-${toneDesc}${templateFocus}
-Aktifkan nada bicara yang antusias, interaktif (buat banyak pertanyaan pancingan untuk turis), dan sedikit humor. Hindari bahasa kaku atau istilah akademis yang rumit.
+ ${toneDesc}${templateFocus}
 
-[Output Format] Susun script ini ke dalam struktur berikut agar mudah saya sampaikan:
+Buatkan script guiding lengkap dengan struktur berikut:
 
-═══ 1. PEMBUKAAN & ICE BREAKING ═══
-• Sambutan hangat dan sapaan yang membangkitkan semangat.
-• Perkenalan diri singkat sebagai Tour Leader yang bersahabat.
-• [ICE BREAKING]: Gunakan minimal 1 ide pertanyaan interaktif atau games singkat yang spesifik ke konteks ${destination}.
+═══ 1. OPENING (Pembukaan) ═══
+• Salam pembuka yang engaging sesuai tone yang dipilih
+• Perkenalan diri singkat sebagai Tour Leader
+• Hook atau pertanyaan pemantik untuk menarik perhatian seluruh rombongan sejak awal
+• Briefing singkat itinerary hari itu
 
-═══ 2. SAFETY & RULES BRIEFING ═══
-• Aturan singkat selama di lokasi (kebersihan, keamanan, batasan area).
-• **Cetak tebal (BOLD) pada informasi keamanan krusial agar mudah diingat.**
+═══ 2. SEJARAH & BUDAYA ═══
+• Ringkasan sejarah penting ${destination} yang relevan untuk wisatawan
+• Nilai-nilai budaya utama yang menonjol
+• Koneksi antara sejarah masa lalu dengan kondisi ${destination} saat ini
+• Sajikan dengan cara yang mudah diingat dan tidak membosankan
 
-═══ 3. STORYTELLING: SEJARAH & BUDAYA ═══
-• Penjelasan destinasi yang dibawakan dengan gaya narasi mengalir.
-• Sertakan "5 FAKTA UNIK" tentang ${destination} yang jarang diketahui wisatawan umum.
-• Berikan "INSIGHT KHUSUS WISATAWAN INDONESIA" (misal: perbandingan budaya, tips adaptasi praktis, info halal/musholla jika relevan).
-• Sajikan dengan cara yang mudah diingat dan tidak membosankan.
+═══ 3. 5 FAKTA UNIK ═══
+• 5 fakta menarik tentang ${destination} yang jarang diketahui wisatawan umum
+• Setiap fakta wajib disertai konteks atau cerita pendukung yang memperkaya pemahaman
+• Prioritaskan fakta yang bisa menjadi bahan pembicaraan selama di bus/perjalanan
 
-═══ 4. PENUTUP & CALL TO ACTION ═══
-• Rangkuman inspiratif yang meninggalkan kesan mendalam.
-• **ARAHAN JELAS** mengenai: Waktu Bebas (Free Time), Titik Kumpul, dan Jam Berkumpul.
-• [PENTING] Gunakan format **BOLD** (cetak tebal) pada: **JAM KUMPUL**, **NAMA TITIK KUMPUL** (${meetingPoint || "Tentukan di lokasi"}), dan **BATAS WAKTU** (${meetingTime || "Sesuai jadwal"}).
+═══ 4. INSIGHT KHUSUS WISATAWAN INDONESIA ═══
+• Perbandingan budaya Indonesia dengan budaya lokal ${destination} (etika, adat, sosial)
+• Tips adaptasi praktis yang langsung bisa diterapkan
+• Hal-hal yang berpotensi menjadi culture shock dan cara mengantisipasinya
+• Informasi halal food, musholla, atau kebutuhan spesifik wisatawan Muslim Indonesia (jika relevan)
 
-[Constraints]
-• Gunakan BAHASA INDONESIA lisan yang natural (spoken language, bukan bahasa tulis formal).
-• Sisipkan CUE atau CATATAN untuk Tour Leader dalam format [KURUNG SIKU KAPITAL], misalnya: [TUNJUK KE ARAH OBJEK], [BERHENTI SEJENAK].
-• Durasi pengucapan: sekitar 3 hingga 5 menit.
-• Cantumkan estimasi waktu penyampaian per bagian.
-• Tambahkan tips "Pro Tip" singkat di setiap akhir bagian.`;
+═══ 5. 3 IDE ICE BREAKING ═══
+• 3 pertanyaan interaktif atau games sederhana yang bisa dilakukan selama perjalanan
+• Setiap ide harus spesifik ke konteks ${destination}
+• Tujuannya membangun kedekatan dan kekompakan rombongan
+• Sertakan estimasi durasi dan cara memandu ice breaking tersebut
+
+═══ 6. CLOSING (Penutup) ═══
+• Rangkuman singkat pengalaman yang akan didapat di ${destination}
+• Pesan inspiratif yang meninggalkan kesan mendalam
+• Ajakan atau next steps yang membangun antisipasi
+• Doa penutup sesuai konteks (jika tone formal/santai)
+
+FORMAT PENTING:
+• Gunakan BAHASA INDONESIA yang natural dan mudah diucapkan (spoken language, bukan bahasa tulis formal)
+• Sisipkan CUE atau CATATAN untuk Tour Leader dalam format [KURUNG SIKU KAPITAL]
+• Setiap bagian diberi penanda yang jelas
+• Cantumkan estimasi waktu penyampaian per bagian
+• Tambahkan tips "Jangan lupa..." atau "Pro tip" di setiap bagian jika memungkinkan`;
   };
 
   const handleGenerate = () => {
@@ -142,7 +142,7 @@ Aktifkan nada bicara yang antusias, interaktif (buat banyak pertanyaan pancingan
       const templateName = selectedTemplateId
         ? templatesDB.find((t) => t.id === selectedTemplateId)?.name || "-"
         : "-";
-      const prompt = buildPrompt(destInput, selectedTone, selectedTemplateId, audience, fact1, fact2, fact3, meetingPoint, meetingTime);
+      const prompt = buildPrompt(destInput, selectedTone, selectedTemplateId);
       setLastPrompt(prompt);
 
       // Save to history
@@ -264,20 +264,11 @@ Aktifkan nada bicara yang antusias, interaktif (buat banyak pertanyaan pancingan
           </div>
 
           {/* Template Chips */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-[11px] font-bold uppercase tracking-widest text-white/35">
-                <i className="fas fa-layer-group mr-1.5" style={{ color: "rgba(197,160,89,0.5)" }} />
-                Template Narasi <span className="normal-case text-white/20 font-normal">(opsional)</span>
-              </label>
-              <button 
-                onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-                className="text-[9px] font-bold text-gold hover:text-gold-light transition-colors uppercase tracking-widest flex items-center gap-1"
-              >
-                <i className={`fas ${isAdvancedOpen ? 'fa-minus-circle' : 'fa-plus-circle'}`}></i>
-                {isAdvancedOpen ? 'Sembunyikan' : 'Tambah Detail'}
-              </button>
-            </div>
+          <div className="mb-6">
+            <label className="block text-[11px] font-bold uppercase tracking-widest text-white/35 mb-2">
+              <i className="fas fa-layer-group mr-1.5" style={{ color: "rgba(197,160,89,0.5)" }} />
+              Template Narasi <span className="normal-case text-white/20 font-normal">(opsional)</span>
+            </label>
             <div className="flex flex-wrap gap-2">
               {templatesDB.map((t) => (
                 <button key={t.id} type="button"
@@ -295,34 +286,6 @@ Aktifkan nada bicara yang antusias, interaktif (buat banyak pertanyaan pancingan
               ))}
             </div>
           </div>
-
-          {/* Advanced Options */}
-          {isAdvancedOpen && (
-            <div className="mb-6 p-4 rounded-xl space-y-4 animate-fadeIn" style={{ background: "rgba(6,15,29,0.4)", border: "1px solid rgba(197,160,89,0.1)" }}>
-              <div>
-                <label className="block text-left text-[9px] font-bold text-gold/60 uppercase tracking-widest mb-1.5 text-xs">Audiens Rombongan</label>
-                <input type="text" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Misal: Keluarga dari Jakarta, Anak SMA" className="input-gold w-full px-3 py-2 rounded-lg bg-navy-dark/60 border border-navy-lighter/30 text-white text-xs" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-left text-[9px] font-bold text-gold/60 uppercase tracking-widest mb-1.5 text-xs">Titik Kumpul</label>
-                  <input type="text" value={meetingPoint} onChange={(e) => setMeetingPoint(e.target.value)} placeholder="Misal: Parkiran Bus A" className="input-gold w-full px-3 py-2 rounded-lg bg-navy-dark/60 border border-navy-lighter/30 text-white text-xs" />
-                </div>
-                <div>
-                  <label className="block text-left text-[9px] font-bold text-gold/60 uppercase tracking-widest mb-1.5 text-xs">Jam Kumpul</label>
-                  <input type="text" value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} placeholder="Misal: 15:30" className="input-gold w-full px-3 py-2 rounded-lg bg-navy-dark/60 border border-navy-lighter/30 text-white text-xs" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-left text-[9px] font-bold text-gold/60 uppercase tracking-widest mb-1.5 text-xs">Poin Penting (Wajib Ada)</label>
-                <div className="space-y-2">
-                  <input type="text" value={fact1} onChange={(e) => setFact1(e.target.value)} placeholder="Poin 1: Sejarah singkat" className="input-gold w-full px-3 py-2 rounded-lg bg-navy-dark/60 border border-navy-lighter/30 text-white text-[11px]" />
-                  <input type="text" value={fact2} onChange={(e) => setFact2(e.target.value)} placeholder="Poin 2: Mitos lokal" className="input-gold w-full px-3 py-2 rounded-lg bg-navy-dark/60 border border-navy-lighter/30 text-white text-[11px]" />
-                  <input type="text" value={fact3} onChange={(e) => setFact3(e.target.value)} placeholder="Poin 3: Spot foto terbaik" className="input-gold w-full px-3 py-2 rounded-lg bg-navy-dark/60 border border-navy-lighter/30 text-white text-[11px]" />
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">

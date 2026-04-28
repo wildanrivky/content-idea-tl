@@ -213,6 +213,25 @@ export default function LoginPage() {
                   </>
                 )}
               </button>
+
+              {/* Lupa Password */}
+              <div style={{ textAlign: "center", marginTop: "4px" }}>
+                <a
+                  href="/lupa-password"
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "rgba(197,160,89,0.55)",
+                    textDecoration: "none",
+                    transition: "color 0.2s",
+                  }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#C5A059"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(197,160,89,0.55)"; }}
+                >
+                  <i className="fas fa-circle-question" style={{ marginRight: "5px", fontSize: "11px" }} />
+                  Lupa Password?
+                </a>
+              </div>
             </form>
           </div>
 
